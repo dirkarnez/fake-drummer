@@ -14,3 +14,7 @@ ecdf-random-numbers
 > Keep in mind that this is a basic approach, and depending on your
 > specific requirements, you may need to use more advanced statistical
 > tests to compare the distributions more rigorously.
+
+
+### MIDI
+- https://github.com/dirkarnez/midifile-playground
