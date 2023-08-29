@@ -1,5 +1,5 @@
-ecdf-random-numbers
-===================
+fake-drummer
+============
 ### ChatGPT
 > 1.  **Mean**: The average value of the generated samples.
 > 2.  **Variance**: A measure of the spread of the generated samples around the mean.
