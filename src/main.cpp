@@ -1,83 +1,140 @@
+#include "MidiFile.h"
+#include "Options.h"
+#include <random>
 #include <iostream>
 #include <vector>
-#include <random>
 #include <algorithm>
 #include <numeric>
 #include <cmath>
 
-// Function to generate random numbers based on ECDF and samples
-double generateRandomNumber(const std::vector<double>& samples) {
-    // Create a random number generator
-    std::random_device rd;
-    std::mt19937 gen(rd());
+using namespace std;
+using namespace smf;
 
-    // Create a uniform distribution [0, 1) for interpolation
-    std::uniform_real_distribution<> uniformDist(0.0, 1.0);
-
-    // Generate a random value between 0 and 1
-    double randomValue = uniformDist(gen);
-
-    // Find the interval in the ECDF where the random value falls
-    auto it = std::upper_bound(samples.begin(), samples.end(), randomValue);
-
-    // Calculate the interpolation weight
-    double weight = (randomValue - *(it - 1)) / (*it - *(it - 1));
-
-    // Perform linear interpolation between the two samples
-    double interpolatedValue = *(it - 1) + weight * (*it - *(it - 1));
-
-    // Return the interpolated value
-    return interpolatedValue;
+// map 0 - 1023 to 0 - 255
+// map(val, 0, 1023, 0, 255);
+long map(long x, long in_min, long in_max, long out_min, long out_max)
+{
+   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-void a(const std::vector<double>& ecdfSamples) {
-    // Generate a large number of random numbers based on the ECDF
-    const int numSamples = 100000;
-    std::vector<double> generatedSamples(numSamples);
-    for (int i = 0; i < numSamples; ++i) {
-        generatedSamples[i] = generateRandomNumber(ecdfSamples);
-    }
+void statistics(const std::vector<double> &input)
+{
+   // Compute statistics of the generated samples
+   double mean = std::accumulate(input.begin(), input.end(), 0.0) / input.size();
+   double variance = 0.0;
+   for (double value : input)
+   {
+      variance += (value - mean) * (value - mean);
+   }
+   variance /= input.size();
+   double standardDeviation = std::sqrt(variance);
 
-    // Compute statistics of the generated samples
-    double mean = std::accumulate(generatedSamples.begin(), generatedSamples.end(), 0.0) / numSamples;
-    double variance = 0.0;
-    for (double value : generatedSamples) {
-        variance += (value - mean) * (value - mean);
-    }
-    variance /= numSamples;
-    double standardDeviation = std::sqrt(variance);
-
-    // Print the statistics
-    std::cout << "Generated samples statistics:" << std::endl;
-    std::cout << "Mean: " << mean << std::endl;
-    std::cout << "Variance: " << variance << std::endl;
-    std::cout << "Standard Deviation: " << standardDeviation << std::endl;
+   // Print the statistics
+   std::cout << "samples statistics:" << std::endl;
+   std::cout << "Mean: " << mean << std::endl;
+   std::cout << "Variance: " << variance << std::endl;
+   std::cout << "Standard Deviation: " << standardDeviation << std::endl;
 }
-int main() {
-    // Define the ECDF samples
-    std::vector<double> ecdfSamples = {0.2, 0.4, 0.6, 0.8, 1.0};
 
-    // Generate 10 continuous random numbers based on the ECDF
-    for (int i = 0; i < 10; ++i) {
-        double randomNumber = generateRandomNumber(ecdfSamples);
-        std::cout << "Random number " << i+1 << ": " << randomNumber << std::endl;
-    }
+int main(int argc, char **argv)
+{
+   // Options options;
+   // options.define("n|note-count=i:10", "How many notes to randomly play");
+   // options.define("o|output-file=s",   "Output filename (stdout if none)");
+   // options.define("i|instrument=i:0",  "General MIDI instrument number");
+   // options.define("x|hex=b",           "Hex byte-code output");
+   // options.process(argc, argv);
 
-    a(ecdfSamples);
-    
-     // Compute statistics of the generated samples
-    double mean = std::accumulate(ecdfSamples.begin(), ecdfSamples.end(), 0.0) / ecdfSamples.size();
-    double variance = 0.0;
-    for (double value : ecdfSamples) {
-        variance += (value - mean) * (value - mean);
-    }
-    variance /= ecdfSamples.size();
-    double standardDeviation = std::sqrt(variance);
+   // {
+   //    random_device rd;
+   //    mt19937 mt(rd());
+   //    uniform_int_distribution<int> starttime(0, 100);
+   //    uniform_int_distribution<int> duration(1, 8);
+   //    uniform_int_distribution<int> pitch(36, 84);
+   //    uniform_int_distribution<int> velocity(40, 100);
 
-    // Print the statistics
-    std::cout << "ecdfSamples samples statistics:" << std::endl;
-    std::cout << "Mean: " << mean << std::endl;
-    std::cout << "Variance: " << variance << std::endl;
-    std::cout << "Standard Deviation: " << standardDeviation << std::endl;
-    return 0;
+   //    MidiFile midifile;
+   //    int track   = 0;
+   //    int channel = 0;
+   //    int instrument   = options.getInteger("instrument");
+   //    midifile.addTimbre(track, 0, channel, instrument);
+
+   //    int tpq     = midifile.getTPQ();
+   //    int count   = options.getInteger("note-count");
+   //    for (int i=0; i<count; i++) {
+   //       int starttick = int(starttime(mt) / 4.0 * tpq);
+   //       int key       = pitch(mt);
+   //       int endtick   = starttick + int(duration(mt) / 4.0 * tpq);
+   //       midifile.addNoteOn (track, starttick, channel, key, velocity(mt));
+   //       midifile.addNoteOff(track, endtick,   channel, key);
+   //    }
+
+   //    midifile.sortTracks();  // Need to sort tracks since added events are
+   //                            // appended to track in random tick order.
+   //    string filename = options.getString("output-file");
+   //    if (filename.empty()) {
+   //       if (options.getBoolean("hex")) midifile.writeHex(cout);
+   //       else cout << midifile;
+   //    } else
+   //       midifile.write(filename);
+   // }
+
+   std::vector<double> samples;
+
+   {
+      // edit the output file, set all the notes to have velocity 127
+      string filename = "..\\open high-hats.mid"; // options.getString("output-file");
+      if (filename.empty())
+      {
+         return -1;
+      }
+
+      MidiFile midifile;
+      midifile.read(filename);
+
+      bool off = true;
+
+      for (int i = 0; i < midifile[1].getSize(); i++)
+      {
+         // 0–127
+         const auto v = midifile[1][i].getVelocity();
+         if (v > 0 && off)
+         {
+            off = false;
+            // cout << midifile[1][i].getKeyNumber() << ":" << v << endl;
+            samples.push_back(static_cast<double>(v));
+            off = true;
+         }
+      }
+      // midifile.write(filename + ".v2.mid");
+   }
+
+   {
+      for (int i = 0; i < samples.size(); i++)
+      {
+         // 0–127
+         cout << samples.at(i) << endl;
+      }
+
+      statistics(samples);
+   }
+
+   {
+      const int numSamples = 100;
+      std::vector<double> generatedSamples(numSamples);
+      for (int i = 0; i < numSamples; ++i)
+      {
+         generatedSamples.at(i) = generateRandomNumber(samples);
+      }
+
+      for (int i = 0; i < generatedSamples.size(); i++)
+      {
+         // 0–127
+         cout << generatedSamples.at(i) << endl;
+      }
+
+      statistics(generatedSamples);
+   }
+
+   return 0;
 }
