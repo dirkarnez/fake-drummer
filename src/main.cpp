@@ -171,6 +171,7 @@ int main(int argc, char **argv)
       std::vector<double> generatedSamples(numSamples);
       for (int i = 0; i < numSamples; ++i)
       {
+         // i did static_cast twice because i don't want to touch `generateRandomNumber` and also  midi accepts integer
          generatedSamples.at(i) = static_cast<double>(static_cast<int>(generateRandomNumber(samples)));
       }
 
