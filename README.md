@@ -15,6 +15,8 @@ fake-drummer
 > specific requirements, you may need to use more advanced statistical
 > tests to compare the distributions more rigorously.
 
+### From
+![](images/import.jpg)
 
-### MIDI
-- https://github.com/dirkarnez/midifile-playground
+### To
+![](images/export.jpg)
