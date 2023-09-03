@@ -6,18 +6,23 @@
 #include <algorithm>
 #include <numeric>
 #include <cmath>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <numeric>
+#include <cmath>
 
 using namespace std;
 using namespace smf;
 
 // map 0 - 1023 to 0 - 255
 // map(val, 0, 1023, 0, 255);
-long map(long x, long in_min, long in_max, long out_min, long out_max)
+long value_map(long x, long in_min, long in_max, long out_min, long out_max)
 {
    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-void statistics(const std::vector<double> &input)
+void statistics(std::vector<double> &input)
 {
    // Compute statistics of the generated samples
    double mean = std::accumulate(input.begin(), input.end(), 0.0) / input.size();
@@ -34,6 +39,43 @@ void statistics(const std::vector<double> &input)
    std::cout << "Mean: " << mean << std::endl;
    std::cout << "Variance: " << variance << std::endl;
    std::cout << "Standard Deviation: " << standardDeviation << std::endl;
+}
+
+double interpolate(double x0, double x1, double y0, double y1, double x) {
+    return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
+}
+double generateRandomNumber(std::vector<double> &sample) {
+   int n = sample.size();
+   std::sort(sample.begin(), sample.end());
+
+    std::vector<double> cumulativeProbs(n);
+    for (int i = 0; i < n; i++) {
+        cumulativeProbs[i] = static_cast<double>(i + 1) / n;
+    }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(0.0, 1.0);
+    double randomValue = dis(gen);
+
+    int index = 0;
+    while (index < n && cumulativeProbs[index] < randomValue) {
+        index++;
+    }
+
+    if (index == 0) {
+        // If the random value falls before the first sample value, interpolate between the first two sample values
+        double generatedValue = interpolate(0, cumulativeProbs[0], sample[0], sample[1], randomValue);
+          return generatedValue;
+    } else if (index == n) {
+        // If the random value falls after the last sample value, interpolate between the last two sample values
+        double generatedValue = interpolate(cumulativeProbs[n - 2], cumulativeProbs[n - 1], sample[n - 2], sample[n - 1], randomValue);
+          return generatedValue;
+    } else {
+        // If the random value falls between two sample values, interpolate between them
+        double generatedValue = interpolate(cumulativeProbs[index - 1], cumulativeProbs[index], sample[index - 1], sample[index], randomValue);
+        return generatedValue;
+    }
 }
 
 int main(int argc, char **argv)
@@ -79,6 +121,8 @@ int main(int argc, char **argv)
    //       midifile.write(filename);
    // }
 
+
+
    std::vector<double> samples;
 
    {
@@ -92,7 +136,10 @@ int main(int argc, char **argv)
       MidiFile midifile;
       midifile.read(filename);
 
+      cout << midifile.getTrackCount() << "!" << endl;
+
       bool off = true;
+
 
       for (int i = 0; i < midifile[1].getSize(); i++)
       {
@@ -108,7 +155,7 @@ int main(int argc, char **argv)
       }
       // midifile.write(filename + ".v2.mid");
    }
-
+   std::cout << "hi2" << std::endl;
    {
       for (int i = 0; i < samples.size(); i++)
       {
@@ -124,7 +171,7 @@ int main(int argc, char **argv)
       std::vector<double> generatedSamples(numSamples);
       for (int i = 0; i < numSamples; ++i)
       {
-         generatedSamples.at(i) = generateRandomNumber(samples);
+         generatedSamples.at(i) = static_cast<double>(static_cast<int>(generateRandomNumber(samples)));
       }
 
       for (int i = 0; i < generatedSamples.size(); i++)
